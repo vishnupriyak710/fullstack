@@ -1,59 +1,46 @@
 import { useState } from 'react'
 
-// Button component
-const Button = ({ text, onClick }) => (
-  <button onClick={onClick}>{text}</button>
-)
+const App = () => {
+  const anecdotes = [
+    'If it hurts, do it more often.',
+    'Adding manpower to a late software project makes it later!',
+    'The first 90 percent of the code accounts for the first 90 percent of the development time...',
+    'Any fool can write code that a computer can understand. Good programmers write code that humans can understand.',
+    'Premature optimization is the root of all evil.',
+    'Debugging is twice as hard as writing the code in the first place.',
+    'Programming without console.log is like a doctor refusing X-rays.',
+    'The only way to go fast, is to go well.'
+  ]
 
-// StatisticLine component (single row)
-const StatisticLine = ({ text, value }) => (
-  <tr>
-    <td>{text}</td>
-    <td>{value}</td>
-  </tr>
-)
+  const [selected, setSelected] = useState(0)
+  const [votes, setVotes] = useState(new Array(anecdotes.length).fill(0))
 
-// Statistics component
-const Statistics = ({ good, neutral, bad }) => {
-  const total = good + neutral + bad
-
-  if (total === 0) {
-    return <p>No feedback given</p>
+  const randomAnecdote = () => {
+    const randomIndex = Math.floor(Math.random() * anecdotes.length)
+    setSelected(randomIndex)
   }
 
-  const average = (good - bad) / total
-  const positive = (good / total) * 100
+  const vote = () => {
+    const copy = [...votes]
+    copy[selected] += 1
+    setVotes(copy)
+  }
 
-  return (
-    <table>
-      <tbody>
-        <StatisticLine text="good" value={good} />
-        <StatisticLine text="neutral" value={neutral} />
-        <StatisticLine text="bad" value={bad} />
-        <StatisticLine text="all" value={total} />
-        <StatisticLine text="average" value={average.toFixed(2)} />
-        <StatisticLine text="positive" value={`${positive.toFixed(2)} %`} />
-      </tbody>
-    </table>
-  )
-}
-
-const App = () => {
-  const [good, setGood] = useState(0)
-  const [neutral, setNeutral] = useState(0)
-  const [bad, setBad] = useState(0)
+  const maxVotes = Math.max(...votes)
+  const mostVotedIndex = votes.indexOf(maxVotes)
 
   return (
     <div>
-      <h1>give feedback</h1>
+      <h1>Anecdote of the day</h1>
+      <p>{anecdotes[selected]}</p>
+      <p>has {votes[selected]} votes</p>
 
-      <Button text="good" onClick={() => setGood(good + 1)} />
-      <Button text="neutral" onClick={() => setNeutral(neutral + 1)} />
-      <Button text="bad" onClick={() => setBad(bad + 1)} />
+      <button onClick={vote}>vote</button>
+      <button onClick={randomAnecdote}>next anecdote</button>
 
-      <h1>statistics</h1>
-
-      <Statistics good={good} neutral={neutral} bad={bad} />
+      <h1>Anecdote with most votes</h1>
+      <p>{anecdotes[mostVotedIndex]}</p>
+      <p>has {maxVotes} votes</p>
     </div>
   )
 }
