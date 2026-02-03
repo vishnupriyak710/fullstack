@@ -1,9 +1,7 @@
-const Filter = ({ value, onChange }) => {
-  return (
-    <div>
-      filter shown with <input value={value} onChange={onChange} />
-    </div>
-  )
-}
+const Filter = ({ value, onChange }) => (
+  <div>
+    Find countries: <input value={value} onChange={onChange} />
+  </div>
+)
 
 export default Filter

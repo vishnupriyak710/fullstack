@@ -1,109 +1,49 @@
-import { useState, useEffect } from "react"
-import Filter from "./components/Filter"
-import PersonForm from "./components/PersonForm"
-import Persons from "./components/Persons"
-import Notification from "./components/Notification"
-import personService from "./services/persons"
+import { useState } from 'react'
 
 const App = () => {
-  const [persons, setPersons] = useState([])
-  const [newName, setNewName] = useState("")
-  const [newNumber, setNewNumber] = useState("")
-  const [filter, setFilter] = useState("")
-  const [notification, setNotification] = useState({ message: null, type: "" })
+  const anecdotes = [
+    'If it hurts, do it more often.',
+    'Adding manpower to a late software project makes it later!',
+    'The first 90 percent of the code accounts for the first 90 percent of the development time...',
+    'Any fool can write code that a computer can understand. Good programmers write code that humans can understand.',
+    'Premature optimization is the root of all evil.',
+    'Debugging is twice as hard as writing the code in the first place.',
+    'Programming without console.log is like a doctor refusing X-rays.',
+    'The only way to go fast, is to go well.'
+  ]
 
-  useEffect(() => {
-    personService.getAll().then(data => setPersons(data))
-  }, [])
+  const [selected, setSelected] = useState(0)
+  const [votes, setVotes] = useState(new Array(anecdotes.length).fill(0))
 
-  const showNotification = (message, type = "success") => {
-    setNotification({ message, type })
-    setTimeout(() => setNotification({ message: null, type: "" }), 5000)
+  const randomAnecdote = () => {
+    const randomIndex = Math.floor(Math.random() * anecdotes.length)
+    setSelected(randomIndex)
   }
 
-  const addPerson = (event) => {
-    event.preventDefault()
-    const existing = persons.find(p => p.name === newName)
-
-    if (existing) {
-      if (window.confirm(`${existing.name} is already added, replace the old number?`)) {
-        const updatedPerson = { ...existing, number: newNumber }
-        personService.update(existing.id, updatedPerson)
-          .then(returnedPerson => {
-            setPersons(persons.map(p => p.id !== existing.id ? p : returnedPerson))
-            setNewName("")
-            setNewNumber("")
-            showNotification(`Updated ${returnedPerson.name}'s number`, "success")
-          })
-          .catch(error => {
-            showNotification(
-              `Information of ${existing.name} has already been removed from server`,
-              "error"
-            )
-            setPersons(persons.filter(p => p.id !== existing.id))
-          })
-      }
-      return
-    }
-
-    const personObject = { name: newName, number: newNumber }
-    personService.create(personObject)
-      .then(returnedPerson => {
-        setPersons(persons.concat(returnedPerson))
-        setNewName("")
-        setNewNumber("")
-        showNotification(`Added ${returnedPerson.name}`, "success")
-      })
-      .catch(error => {
-        showNotification("Failed to add person", "error")
-      })
+  const vote = () => {
+    const copy = [...votes]
+    copy[selected] += 1
+    setVotes(copy)
   }
 
-  const deletePerson = (id) => {
-    const person = persons.find(p => p.id === id)
-    if (window.confirm(`Delete ${person.name}?`)) {
-      personService.remove(id)
-        .then(() => {
-          setPersons(persons.filter(p => p.id !== id))
-          showNotification(`Deleted ${person.name}`, "success")
-        })
-        .catch(error => {
-          showNotification(
-            `Information of ${person.name} has already been removed from server`,
-            "error"
-          )
-          setPersons(persons.filter(p => p.id !== id))
-        })
-    }
-  }
-
-  const personsToShow = filter === "" 
-    ? persons 
-    : persons.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()))
+  const maxVotes = Math.max(...votes)
+  const mostVotedIndex = votes.indexOf(maxVotes)
 
   return (
     <div>
-      <h2>Phonebook</h2>
+      <h1>Anecdote of the day</h1>
+      <p>{anecdotes[selected]}</p>
+      <p>has {votes[selected]} votes</p>
 
-      <Notification message={notification.message} type={notification.type} />
+      <button onClick={vote}>vote</button>
+      <button onClick={randomAnecdote}>next anecdote</button>
 
-      <Filter value={filter} onChange={e => setFilter(e.target.value)} />
-
-      <h3>Add a new</h3>
-      <PersonForm
-        onSubmit={addPerson}
-        name={newName}
-        number={newNumber}
-        onNameChange={e => setNewName(e.target.value)}
-        onNumberChange={e => setNewNumber(e.target.value)}
-      />
-
-      <h3>Numbers</h3>
-      <Persons persons={personsToShow} deletePerson={deletePerson} />
+      <h1>Anecdote with most votes</h1>
+      <p>{anecdotes[mostVotedIndex]}</p>
+      <p>has {maxVotes} votes</p>
     </div>
   )
 }
 
 export default App
-
 
