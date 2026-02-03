@@ -1,32 +1,75 @@
-import Course from './Course'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
+import Filter from './components/Filter'
+import PersonForm from './components/PersonForm'
+import Persons from './components/Persons'
 
 const App = () => {
-  const courses = [
-    {
-      name: 'Half Stack application development',
-      id: 1,
-      parts: [
-        { name: 'Fundamentals of React', exercises: 10, id: 1 },
-        { name: 'Using props to pass data', exercises: 7, id: 2 },
-        { name: 'State of a component', exercises: 14, id: 3 },
-        { name: 'Redux', exercises: 11, id: 4 }
-      ]
-    },
-    {
-      name: 'Node.js',
-      id: 2,
-      parts: [
-        { name: 'Routing', exercises: 3, id: 1 },
-        { name: 'Middlewares', exercises: 7, id: 2 }
-      ]
+  const [persons, setPersons] = useState([])
+  const [newName, setNewName] = useState('')
+  const [newNumber, setNewNumber] = useState('')
+  const [filter, setFilter] = useState('')
+
+  useEffect(() => {
+    axios
+      .get('http://localhost:3001/persons')
+      .then(response => {
+        setPersons(response.data)
+      })
+  }, [])
+
+  const addPerson = (event) => {
+    event.preventDefault()
+
+    const existing = persons.find(
+      person => person.name.toLowerCase() === newName.toLowerCase()
+    )
+
+    if (existing) {
+      alert(`${newName} is already added to phonebook`)
+      return
     }
-  ]
+
+    const personObject = {
+      name: newName,
+      number: newNumber,
+      id: persons.length + 1
+    }
+
+    setPersons(persons.concat(personObject))
+    setNewName('')
+    setNewNumber('')
+  }
+
+  const personsToShow =
+    filter === ''
+      ? persons
+      : persons.filter(person =>
+          person.name.toLowerCase().includes(filter.toLowerCase())
+        )
 
   return (
     <div>
-      {courses.map(course =>
-        <Course key={course.id} course={course} />
-      )}
+      <h2>Phonebook</h2>
+
+      <Filter
+        filter={filter}
+        handleFilterChange={(e) => setFilter(e.target.value)}
+      />
+
+      <h3>Add a new</h3>
+
+      <PersonForm
+        addPerson={addPerson}
+        newName={newName}
+        handleNameChange={(e) => setNewName(e.target.value)}
+        newNumber={newNumber}
+        handleNumberChange={(e) => setNewNumber(e.target.value)}
+      />
+
+      <h3>Numbers</h3>
+
+      <Persons persons={personsToShow} />
     </div>
   )
 }
