@@ -1,34 +1,32 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import { getAll, create } from './services/persons'
+import './App.css'
 
-const baseUrl = 'http://localhost:3001/api/persons'
-
-function App() {
+const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [newPlace, setNewPlace] = useState('')
+  const [errorMessage, setErrorMessage] = useState(null)
 
-  // Fetch existing persons from backend
+  // Fetch initial data from backend
   useEffect(() => {
-    axios.get(baseUrl)
-      .then(response => setPersons(response.data))
-      .catch(error => console.error('Error fetching persons:', error))
+    getAll()
+      .then(initialPersons => setPersons(initialPersons))
+      .catch(error => {
+        setErrorMessage('Error fetching persons from server')
+        console.log(error)
+      })
   }, [])
 
   // Handle adding a new person
   const addPerson = (event) => {
     event.preventDefault()
 
-    // Validation
-    if (!newName || !newNumber || !newPlace) {
-      alert('All fields are required')
-      return
-    }
-
-    const duplicate = persons.find(p => p.name === newName)
-    if (duplicate) {
-      alert(`${newName} is already in the phonebook`)
+    // Check if name already exists
+    const existingPerson = persons.find(p => p.name === newName)
+    if (existingPerson) {
+      alert(`${newName} is already added to phonebook`)
       return
     }
 
@@ -38,63 +36,45 @@ function App() {
       place: newPlace
     }
 
-    axios.post(baseUrl, personObject)
-      .then(response => {
-        // Update the state with the new person returned from backend
-        setPersons(prevPersons => prevPersons.concat(response.data))
-        // Clear input fields
+    create(personObject)
+      .then(returnedPerson => {
+        setPersons(persons.concat(returnedPerson))
         setNewName('')
         setNewNumber('')
         setNewPlace('')
       })
       .catch(error => {
-        alert(error.response?.data?.error || 'Error adding person')
+        setErrorMessage('Error adding person')
+        console.log(error)
       })
   }
 
   return (
-    <div style={{ maxWidth: '500px', margin: 'auto', fontFamily: 'Arial, sans-serif' }}>
-      <h1>Phonebook</h1>
+    <div>
+      <h2>Phonebook</h2>
+
+      {errorMessage && <div className="error">{errorMessage}</div>}
 
       <form onSubmit={addPerson}>
         <div>
-          <label>
-            Name: 
-            <input
-              value={newName}
-              onChange={e => setNewName(e.target.value)}
-              required
-            />
-          </label>
+          Name: <input value={newName} onChange={e => setNewName(e.target.value)} />
         </div>
         <div>
-          <label>
-            Number: 
-            <input
-              value={newNumber}
-              onChange={e => setNewNumber(e.target.value)}
-              required
-            />
-          </label>
+          Number: <input value={newNumber} onChange={e => setNewNumber(e.target.value)} />
         </div>
         <div>
-          <label>
-            Place: 
-            <input
-              value={newPlace}
-              onChange={e => setNewPlace(e.target.value)}
-              required
-            />
-          </label>
+          Place: <input value={newPlace} onChange={e => setNewPlace(e.target.value)} />
         </div>
-        <button type="submit" style={{ marginTop: '10px' }}>Add</button>
+        <div>
+          <button type="submit">Add</button>
+        </div>
       </form>
 
       <h2>Numbers</h2>
       <ul>
-        {persons.map(person => (
-          <li key={person.id}>
-            {person.name} {person.number} ({person.place})
+        {persons.map(p => (
+          <li key={p.id}>
+            {p.name} {p.number} ({p.place})
           </li>
         ))}
       </ul>
@@ -103,4 +83,3 @@ function App() {
 }
 
 export default App
-
