@@ -1,0 +1,24 @@
+{
+  "name": "part4",
+  "version": "1.0.0",
+  "description": "Fullstack Open Part 4 Backend",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "jest --verbose --runInBand"
+  },
+  "keywords": [],
+  "author": "Vishnu Priya",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.3.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
+    "supertest": "^6.3.3"
+  }
+}
+
